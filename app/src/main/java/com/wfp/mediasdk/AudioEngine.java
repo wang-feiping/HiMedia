@@ -32,7 +32,6 @@ public class AudioEngine {
 
     public AudioEngine(String path) {
         this.mPath = path;
-        this.engineThread = new EngineThread("AudioEngine");
     }
 
     public void initEngine() {
@@ -45,7 +44,8 @@ public class AudioEngine {
         MediaFormat format = MediaExtractorUtil.getAudioFormat(extractor);
         this.codec = MediaCodecUtil.createMediaCodec(format, null);
         this.audioTrack = AudioTrackUtil.createAudioTrack(format);
-        engineThread.start();
+        this.engineThread = new EngineThread("AudioEngine");
+        this.engineThread.start();
         isInitialed = true;
     }
 
@@ -53,6 +53,11 @@ public class AudioEngine {
         Handler handler = engineThread.getHandler();
         if (handler == null) {
             Log.e(TAG, "handler is null");
+            return;
+        }
+
+        if (isPlay) {
+            Log.e(TAG, "audio already play");
             return;
         }
 
@@ -71,6 +76,7 @@ public class AudioEngine {
     public void release() {
         if (engineThread != null) {
             engineThread.close();
+            engineThread = null;
         }
 
         if (codec != null) {
@@ -90,6 +96,7 @@ public class AudioEngine {
         }
 
         isInitialed = false;
+        isPlay = false;
     }
 
     private void onDraw() {

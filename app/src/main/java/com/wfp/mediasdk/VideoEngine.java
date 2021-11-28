@@ -30,7 +30,6 @@ public class VideoEngine {
 
     public VideoEngine(String path) {
         this.mPath = path;
-        this.engineThread = new EngineThread("VideoEngine");
     }
 
     public void initEngine(Surface surface) {
@@ -42,7 +41,8 @@ public class VideoEngine {
         this.extractor = MediaExtractorUtil.getExtractor(mPath);
         MediaFormat format = MediaExtractorUtil.getVideoFormat(extractor);
         this.codec = MediaCodecUtil.createMediaCodec(format, surface);
-        engineThread.start();
+        this.engineThread = new EngineThread("VideoEngine");
+        this.engineThread.start();
         isInitialed = true;
     }
 
@@ -50,6 +50,11 @@ public class VideoEngine {
         Handler handler = engineThread.getHandler();
         if (handler == null) {
             Log.e(TAG, "handler is null");
+            return;
+        }
+
+        if (isPlay) {
+            Log.e(TAG, "video already play");
             return;
         }
 
@@ -61,11 +66,14 @@ public class VideoEngine {
 
     public void stop() {
         isPlay = false;
+        isInputBufferEnd = true;
+        isOutputBufferEnd = true;
     }
 
     public void release() {
         if (engineThread != null) {
             engineThread.close();
+            engineThread = null;
         }
 
         if (codec != null) {
@@ -79,6 +87,7 @@ public class VideoEngine {
             extractor = null;
         }
 
+        isPlay = false;
         isInitialed = false;
     }
 
